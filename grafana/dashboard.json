@@ -179,6 +179,6 @@
   "templating": { "list": [] },
   "time": { "from": "now-6h", "to": "now" },
   "title": "Ollama Log Proxy",
-  "uid": "ollama-log-proxy",
+  "uid": "Ollama-Token-Logger",
   "version": 1
 }

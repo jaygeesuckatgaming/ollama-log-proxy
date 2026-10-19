@@ -1,0 +1,6 @@
+ollama-log-proxy --dashboard 8089 --metrics-port 9090
+
+AI VTuber Update #20
+Added ollama-log-proxy to the main page in the Control Panel so you can track how many Tokens you are using. You have to install ollama-log-proxy for this to work..
+https://github.com/The-Bash/ollama-lo...
+

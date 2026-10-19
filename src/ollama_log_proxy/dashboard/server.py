@@ -11,7 +11,7 @@ from typing import Any
 from ollama_log_proxy.backends import LogBackend
 from ollama_log_proxy.metrics import MetricsCollector, _check_token
 
-_DASHBOARD_HTML = Path(__file__).parent / "index.html"
+_DASHBOARD_HTML = Path(__file__).parent / "index_1.html"
 
 
 def _make_handler(
@@ -27,7 +27,7 @@ def _make_handler(
                 return
 
             path = self.path.split("?")[0]
-            if path in ("/", "/index.html"):
+            if path in ("/", "/index_1.html"):
                 self._serve_html()
             elif path == "/api/stats":
                 self._serve_stats()

@@ -17,6 +17,14 @@ class TestClassifyRequest:
         assert classify_request("/api/chat") == "inference"
         assert classify_request("/api/embeddings") == "inference"
         assert classify_request("/api/embed") == "inference"
+        assert classify_request("/v1/chat/completions") == "inference"
+        assert classify_request("/v1/completions") == "inference"
+        assert classify_request("/v1/embeddings") == "inference"
+        assert classify_request("/v1/responses") == "inference"
+
+    def test_inference_endpoint_trailing_slash(self):
+        assert classify_request("/v1/chat/completions/") == "inference"
+        assert classify_request("/api/chat/") == "inference"
 
     def test_poll_endpoints(self):
         assert classify_request("/api/tags") == "poll"
@@ -107,3 +115,59 @@ class TestExtractUsage:
         assert prompt == 15
         assert completion == 25
         assert total == 40
+
+    def test_openai_sse_usage(self):
+        data = (
+            b'data: {"choices":[{"index":0,"delta":{"role":"assistant","content":""}}]}\n\n'
+            b'data: {"choices":[{"index":0,"delta":{"content":"Hello"}}]}\n\n'
+            b'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}],'
+            b'"usage":{"prompt_tokens":15,"completion_tokens":25,"total_tokens":40}}\n\n'
+            b"data: [DONE]\n\n"
+        )
+        prompt, completion, total = extract_usage_from_response(
+            data, "/v1/chat/completions"
+        )
+        assert prompt == 15
+        assert completion == 25
+        assert total == 40
+
+    def test_openai_sse_without_usage(self):
+        data = (
+            b'data: {"choices":[{"index":0,"delta":{"content":"Hello"}}]}\n\n'
+            b'data: {"choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}\n\n'
+            b"data: [DONE]\n\n"
+        )
+        prompt, completion, total = extract_usage_from_response(
+            data, "/v1/chat/completions"
+        )
+        assert prompt == 0
+        assert completion == 0
+        assert total == 0
+
+    def test_openai_sse_computes_missing_total(self):
+        data = (
+            b'data: {"usage":{"prompt_tokens":7,"completion_tokens":3}}\n\n'
+            b"data: [DONE]\n\n"
+        )
+        prompt, completion, total = extract_usage_from_response(
+            data, "/v1/chat/completions"
+        )
+        assert prompt == 7
+        assert completion == 3
+        assert total == 10
+
+    def test_openai_responses_usage(self):
+        data = json.dumps(
+            {
+                "object": "response",
+                "usage": {
+                    "input_tokens": 11,
+                    "output_tokens": 22,
+                    "total_tokens": 33,
+                },
+            }
+        ).encode()
+        prompt, completion, total = extract_usage_from_response(data, "/v1/responses")
+        assert prompt == 11
+        assert completion == 22
+        assert total == 33
